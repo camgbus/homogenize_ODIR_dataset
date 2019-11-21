@@ -1,5 +1,10 @@
 
 # %%
+
+from IPython import get_ipython
+get_ipython().magic('load_ext autoreload') 
+get_ipython().magic('autoreload 2')
+
 import os
 import csv
 import sys
@@ -51,14 +56,13 @@ def print_class_distribution(df):
 print('Class distribution regular train set')
 print_class_distribution(patient_df)
 
-'''
+
 print('Class distribution for the different image artifacts')
 for char in picture_characteristics:
-    print(char)
     char_df = image_df[image_df[char] == 1]
     char_patient_df = patient_df[patient_df['patient_id'].isin(char_df['patient_id'])]
     print_class_distribution(char_patient_df)
-'''
+
 
 print('Class distribution for the subset of images with ANY artifact')
 char_df = image_df[(image_df['lens dust'] == 1) | (image_df['optic disk photographically invisible'] == 1) | 
@@ -66,6 +70,19 @@ char_df = image_df[(image_df['lens dust'] == 1) | (image_df['optic disk photogra
 char_patient_df = patient_df[patient_df['patient_id'].isin(char_df['patient_id'])]
 print_class_distribution(char_patient_df)
 
-
-
 # %%
+from ho.display_images import random_img_grid
+from ho.paths import data_destination
+
+# Print out grid of images of a class
+def print_grid(patient_df, image_df, label=None, characteristic=None):
+    if label:
+        patient_df = patient_df[patient_df[label] == 1]
+    patients = list(patient_df['patient_id'])
+    if characteristic:
+        char_df = image_df[(image_df[characteristic] == 1)]
+        images = [row['patient_id'] + ('_left.png' if row['left?'] else '_right.png') for index, row in char_df.iterrows()]
+        patient_paths = [os.path.join(data_destination, x) for x in images]
+    else:
+        patient_paths = [os.path.join(data_destination, x +'_left.png') for x in patients]
+    random_img_grid(img_path_list=patient_paths, nr_rows=2, nr_cols=4, save_path='C:\\Users\\cgonzale\\Desktop\\Thesis images\\ODIR\\'+str(label)+'_'+str(characteristic)+'.png')
